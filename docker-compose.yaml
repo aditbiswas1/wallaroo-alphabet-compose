@@ -1,0 +1,40 @@
+version: '3'
+services:
+  # This service loads in data from the GitHub Archive project at
+  # a specified rate.
+  wallaroo_primary_worker:
+    build: alphabet
+    command: bash /code/worker.sh
+
+    privileged: true
+    ports:
+      # cluster control channel port
+      - "12500:12500"
+      # cluster data channel port
+      - "12501:12501"
+      # external control port
+      - "5050:5050"
+    links:
+      - wallaroo_metrics_ui
+      - dummy_receiver
+
+  dummy_receiver:
+    build: alphabet
+    command: bash /code/receiver.sh
+    privileged: true
+
+  # dummy_sender:
+  #   build: alphabet
+  #   command: bash /code/sender.sh
+  #   privileged: true
+  #   links:
+  #     - wallaroo_primary_worker
+
+  # Setup the Metrics UI so we can watch our application performance
+  wallaroo_metrics_ui:
+    image: wallaroo-labs-docker-wallaroolabs.bintray.io/release/metrics_ui:0.4.2
+    ports:
+      # The web UI
+      - "4000:4000"
+      # Metrics collection port
+      - "5001:5001"
